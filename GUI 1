@@ -1,0 +1,148 @@
+#!/usr/bin/env python3
+
+# Autho: Alex Liu aliu@te.com
+# TE Connectivity
+# Confidential and proprietary
+
+from PyQt5.QtWidgets import QApplication, QLabel, QPushButton
+
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QSlider, QLabel, QGroupBox
+
+from PyQt5.QtCore import Qt
+
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+
+from matplotlib.figure import Figure
+
+import math, matplotlib.pyplot as plt
+
+# classes
+
+# set up slider class
+
+class SliderDisplay(QWidget):
+
+    def __init__(self, name, low, high, ticks=1000):   # ticks set at 1k
+
+        """ sets up a slider with the name, lower limit, upper limit """
+
+        QWidget.__init__(self)
+
+        self.name = name
+        self.low = low
+        self.range = high - low
+        self.ticks = ticks
+
+        # Horizontal layout
+        layout = QHBoxLayout()
+        self.setLayout(layout)
+
+        self.slider = QSlider(Qt.Horizontal)
+        self.slider.setMinimum(0)
+        self.slider.setMaximum(ticks)
+        self.slider.valueChanged.connect(self.set_value)
+
+        self.display = QLabel()
+        self.set_value()
+
+        layout.addWidget(self.display)
+        layout.addWidget(self.slider)
+
+    def value(self):
+        return (self.slider.value() / self.ticks) * self.range + self.low
+
+    def set_value(self):
+        self.display.setText('{0}: {1:.3f}'.format(self.name, self.value()))
+
+# display
+
+class GraphingDisplay(FigureCanvas):
+
+    def __init__(self):
+        self.figure = Figure()
+        FigureCanvas.__init__(self, self.figure)
+
+    def clear(self):
+        self.figure.clear()
+
+    def figure(self):
+        return self.add_subplot(111)
+
+# main GUI class
+
+class ChartRecorderGUI(QMainWindow):
+
+    def __init__(self):
+        QMainWindow.__init__(self)
+        self.setWindowTitle('Chart Recorder Master Program')
+
+        # Control buttons for the interface
+        quit_button = QPushButton('Quit')
+        quit_button.clicked.connect(app.exit)
+
+        start_button = QPushButton('Start\nRecording')
+        start_button.clicked.connect(self.plotprofile)
+
+        # The display for the graph
+        self.figure = Figure()
+        self.display = FigureCanvas(self.figure)
+        self.draw()
+
+        # FORMATTING; The layout of the interface
+        widget = QWidget()
+        self.setCentralWidget(widget)
+
+        top_level_layout = QHBoxLayout()
+        widget.setLayout(top_level_layout)
+        left_side_layout = QVBoxLayout()
+
+
+        left_side_layout.addWidget(start_button)
+        left_side_layout.addStretch()
+        left_side_layout.addWidget(quit_button)
+
+        top_level_layout.addLayout(left_side_layout)
+        top_level_layout.addWidget(self.display)
+
+        # additional parameters
+        self.zeta = None  # by default
+
+    # Plot Profile Method: THIS IS THE PART THAT NEEDS UPDATE from serial port
+
+    def plotprofile(self):
+
+        line = []
+
+        for i in range (0,1000):
+            line.append(i)
+
+        self.draw(line)
+
+    # method for drawing lines in this class
+
+    def draw(self, data=None):
+
+        self.figure.clear()
+
+        if data:
+            ax = self.figure.add_subplot(111)
+
+            ax.plot(data)
+
+            title = 'Part Profile'
+
+            ax.set_title(title)
+
+            ax.set_ylabel('Diameter')
+
+            self.display.draw()
+
+if __name__ == '__main__':
+
+    app = QApplication([])
+
+    gui = ChartRecorderGUI()
+
+    gui.show()
+
+    app.exec_()
