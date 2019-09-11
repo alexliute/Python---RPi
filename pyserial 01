@@ -1,0 +1,31 @@
+#!/usr/bin/env python3
+
+import serial, matplotlib.pyplot as plt
+import matplotlib.animation as animation
+from matplotlib import style
+import time
+
+
+if __name__ == '__main__':
+
+    fig = plt.figure()
+    ser = serial.Serial()
+    ser.baudrate = 38400
+    ser.port = 'COM4'
+    ser.open()
+    i = 0
+    x = []
+    while True:
+        # data will have begin with "b'" and end with "\r\n"
+        a = str(ser.readline())[2:-5]
+        x.append(a)
+        print(a)
+        i += 1
+        plt.scatter(i, a)
+        plt.pause(0.05)
+
+    plt.show()
+
+    ser.close()
+
+
